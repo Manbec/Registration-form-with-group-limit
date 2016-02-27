@@ -29,7 +29,7 @@ if(isset($_POST['mat']) && isset($_POST['name']) && isset($_POST['lname']) && is
 	}
 }
 
-$stmt = $pdo->prepare('Select * from (SELECT ls.SpaceId, count(Matricula) as registrations FROM `registration` r join labspace ls where r.spaceID = ls.SpaceID group by r.spaceID) as T right join labspace on  T.SpaceID = labspace.SpaceID;');
+$stmt = $pdo->prepare('Select labspace.SpaceID, availableSpaces-ifnull(registrations,0) as remaining, Description from (SELECT ls.SpaceId, count(Matricula) as registrations FROM `registration` r join labspace ls where r.spaceID = ls.SpaceID group by r.spaceID) as T right join labspace on  T.SpaceID = labspace.SpaceID;');
 $stmt->execute();
 $labspaces = $stmt->fetchall();
 
@@ -45,7 +45,7 @@ $labspaces = $stmt->fetchall();
 <html data-wf-site="5571e5ec944bce2d287c29b6" data-wf-page="5571e5ec944bce2d287c29b8">
 <head>
   <meta charset="utf-8">
-  <title>TSLUP</title>
+  <title>Registro de laboratorios</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="Webflow">
   <link rel="stylesheet" type="text/css" href="css/normalize.css">
@@ -143,7 +143,9 @@ $labspaces = $stmt->fetchall();
               	<?php
 					if(sizeof($labspaces)>0){
 						for($i = 0; $i < sizeof($labspaces); $i++){
-  							echo '<option value="'.$labspaces[$i]["SpaceID"].'">'.$labspaces[$i]["Description"].'</option>';
+							if(intval($labspaces[$i]["remaining"])>0){
+  								echo '<option value="'.$labspaces[$i]["SpaceID"].'">'.$labspaces[$i]["Description"].'</option>';
+							}
 						}
 					}
 					else{
