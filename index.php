@@ -33,6 +33,10 @@ $stmt = $pdo->prepare('Select labspace.SpaceID, availableSpaces-ifnull(registrat
 $stmt->execute();
 $labspaces = $stmt->fetchall();
 
+$stmt = $pdo->prepare('Select * from professor');
+$stmt->execute();
+$professors = $stmt->fetchall();
+
 //print_r($labspaces);
 /*if(isset($_POST['email'])){
 	$stmt = $pdo->prepare('INSERT INTO `client`(`mail`, `name`) VALUES (:mail,:name)');
@@ -132,6 +136,18 @@ $labspaces = $stmt->fetchall();
               <input class="w-input form-field" id="mat" type="text" placeholder="Matrícula" name="mat">
               <input class="w-input form-field" id="name" type="text" placeholder="Nombre" name="name">
               <input class="w-input form-field" id="lname" type="text" placeholder="Apellidos" name="lname">
+              <label>Profesor que imparte la teoría</label>
+              <select class="w-input form-field" name="professor">
+              	<?php
+					if(sizeof($professors )>0){
+						for($i = 0; $i < sizeof($professors ); $i++){
+  							echo '<option value="'.$professors [$i]["ProfessorID"].'">'.$professors[$i]["name"].'</option>';
+						}
+					}
+					else{
+					}
+				?>
+			  </select>
             </div>
             <div class="w-col w-col-2"></div>
             <div class="w-col w-col-2"></div>
@@ -139,6 +155,7 @@ $labspaces = $stmt->fetchall();
           <div class="w-row">
             <div class="w-col w-col-2"></div>
             <div class="w-col w-col-6">
+              <label>Horario a elegir</label>
               <select class="w-input form-field" name="spaceid">
               	<?php
 					if(sizeof($labspaces)>0){
@@ -165,7 +182,8 @@ $labspaces = $stmt->fetchall();
 				  </script>
             </div>
             <div class="w-col w-col-2">
-              <input class="w-button button" type="submit" value="Submit" data-wait="Please wait...">
+              <label style="color: white;"> .</label>
+              <input class="w-button button" type="submit" value="Enviar" data-wait="Please wait...">
             </div>
             <div class="w-col w-col-2"></div>
           </div>
