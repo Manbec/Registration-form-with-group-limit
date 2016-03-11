@@ -17,7 +17,7 @@ if(isset($_POST['mat']) && isset($_POST['name']) && isset($_POST['lname']) && is
 	}
 }
 
-$stmt = $pdo->prepare('Select labspace.SpaceID, availableSpaces-ifnull(registrations,0) as remaining, Description from (SELECT ls.SpaceId, count(Matricula) as registrations FROM `registration` r join labspace ls where r.spaceID = ls.SpaceID group by r.spaceID) as T right join labspace on  T.SpaceID = labspace.SpaceID;');
+$stmt = $pdo->prepare('Select * from labspace;');
 $stmt->execute();
 $labspaces = $stmt->fetchall();
 
@@ -66,6 +66,33 @@ $professors = $stmt->fetchall();
 	  ga('create', 'UA-63978632-1', 'auto');
 	  ga('send', 'pageview');
 	
+	</script>
+    <script>
+		function prepareDel(type,id,descriptor){
+			document.getElementById(type+'Id').value = id;
+			
+			document.getElementById(type+'Name').value = descriptor;
+		}
+		function enableEditCourse(type,id){
+			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:block;');
+			document.getElementById(type+'icons'+id).setAttribute('style', 'display:none;');	
+			document.getElementById(type+'name'+id).removeAttribute('disabled');
+			document.getElementById(type+'space'+id).removeAttribute('disabled');
+		}
+		function disableEditCourse(type,id){
+			
+			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:none;');
+			document.getElementById(type+'icons'+id).setAttribute('style', 'display:block;');	
+			document.getElementById(type+'name'+id).setAttribute('disabled','disabled');
+			document.getElementById(type+'space'+id).setAttribute('disabled','disabled');
+		}
+		function showNewLab(){
+			document.getElementById('newlab').setAttribute('style', '');	
+		}
+		
+		function hideNewLab(){
+			document.getElementById('newlab').setAttribute('style', 'display: none;');	
+		}
 	</script>
 </head>
 <body>
@@ -119,6 +146,25 @@ $professors = $stmt->fetchall();
         <div id="registerfade" class="black_overlay" onclick="lightboxOut(\'registerlight\',\'registerfade\')"></div>';
 	}
 	?>
+    
+     <div id="delcourselight" class="white_content">
+                                  <div class="w-row" style="text-align: center;">
+                                  <div class="w-col w-col-3"></div>
+                                  <div class="w-col w-col-6">
+                                  <form id="email-form" method="post" action="delcourse">
+                              			<input class="w-input form-field list" style="display: none;" id="courseId" type="text" placeholder="ID del curso" name="course">
+                                  	
+                                  		<p><strong>¿Seguro que desea borrar el curso <strong><span id="courseName">	</span></strong>?</strong> <br>Se perderán todos los registros del mismo</p>
+                                  		<input style="height: auto; width: 100%; padding: 10px; float: none; margin-top: 20px;   display: block; cursor:pointer;   background-color: red; color: white;" type="submit" value="Borrar">
+                                        
+                                  </form>
+                                        <a style="position: relative; height: auto; padding: 10px;  float: none;  margin-left: 0px; margin-top: 20px;   display: block; cursor:pointer;   background-color: #265aa6; color: white;" onclick="lightboxOut(\'registerlight\',\'registerfade\')">Cancelar</a>
+                                  </div>
+                                  <div class="w-col w-col-3"></div>
+                                  </div> 
+                                      
+     </div>
+        <div id="delcoursefade" class="black_overlay" onclick="lightboxOut('delcourselight','delcoursefade')"></div>
 
   <script>lightboxIn('registerlight','registerfade');</script>
   <div class="w-section navigation-bar" id="start">
@@ -136,7 +182,7 @@ $professors = $stmt->fetchall();
     </div>
   </div>
   <div class="w-section section lesspaceup" id="about">
-    <div class="w-container section" id="contact">
+    <div class="w-container" id="contact">
       <h1 class="title">Registro de laboratorios</h1>
       <div class="w-form">
           <div class="w-row">
@@ -152,9 +198,49 @@ $professors = $stmt->fetchall();
                   </div>
                   <div class="w-tab-content">
                     <div data-w-tab="Tab 1" class="w-tab-pane w--tab-active">
-                      <div id="newlab">
+                    	<?php
+						
+						for($i = 0; $i < sizeof($labspaces); $i++){
+							echo '
+							<div class="w-row course-row">
+                          
+                    	<form id="email-form" style="padding: 10px;" method="post" action="updatecourse">
+            				<div class="w-col w-col-1"><p>Curso:</p></div>
+                            <div class="w-col w-col-4">
+                              <input class="w-input form-field list" id="coursename'.$labspaces[$i]['SpaceID'].'" type="text" placeholder="Nombre del curso" value="'.$labspaces[$i]['Description'].'" name="course" disabled>
+                            </div>
+            				<div class="w-col w-col-1"><p>Cupo:</p></div>
+                            <div class="w-col w-col-2">
+                              <input class="w-input form-field list" id="coursespace'.$labspaces[$i]['SpaceID'].'" type="number" min="0" step="1" placeholder="Cupo" value="'.$labspaces[$i]['availableSpaces'].'" name="cupo" disabled>
+                            </div>
+                            <div class="w-col w-col-4">
+							<div id="courseicons'.$labspaces[$i]['SpaceID'].'" style="display: block;">
+                              <a onclick="enableEditCourse(\'course\','.$labspaces[$i]['SpaceID'].')" class="course-action-icon">
+                                 <img class="control-icon" src="../images/lapiz.png" onmouseover="this.src= \'../images/lapiz-01.png\';" onmouseout="this.src=\'../images/lapiz.png\';" />
+                              </a>
+                            <a onclick="lightboxIn(\'delcourselight\', \'delcoursefade\');prepareDel(\'course\',0);" class="course-action-icon">
+                                 <img class="control-icon" src="../images/borrar-04.png" onmouseover="this.src= \'../images/borrar-02.png\';" onmouseout="this.src= \'../images/borrar-04.png\';" />
+                              </a>
+							  </div>
+                              <div id="coursebuttons'.$labspaces[$i]['SpaceID'].'" style="display: none;">
+              					<input style="" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
+                                <a style="" class="w-button button course-button" onclick="disableEditCourse(\'course\','.$labspaces[$i]['SpaceID'].')">Cancelar</a>
+							  </div>
+                            </div>
+                            
+                        </form>
+                          </div>';
+						}
+						?>
+                      	<div class="w-row course-row">
+                            <a onclick="showNewLab();" class="course-action-icon" style="margin-bottom: 10px;">
+                                 <img class="control-icon" src="../images/borrar-03.png" onmouseover="this.src= '../images/borrar-01.png';" onmouseout="this.src= '../images/borrar-03.png';" />
+                              </a>
+                          </div>
+                      <div id="newlab" style="display: none;">
+                          <div class="w-row course-row">
+                          
                     	<form id="email-form" style="padding: 10px;" method="post" action="newcourse">
-                          <div class="w-row">
             				<div class="w-col w-col-1"><p>Curso:</p></div>
                             <div class="w-col w-col-4">
                               <input class="w-input form-field list" id="password" type="text" placeholder="Nombre del curso" name="course">
@@ -164,17 +250,13 @@ $professors = $stmt->fetchall();
                               <input class="w-input form-field list" id="course" type="number" min="0" step="1" placeholder="Cupo" name="cupo">
                             </div>
                             <div class="w-col w-col-4">
-                              <a onclick="lightboxOut('mescontactlight', 'mescontactfade')" style="float: left; margin-top: 0px; margin-right: 10px;">
-                                 <img class="control-icon" src="../images/lapiz.png" onmouseover="this.src= '../images/lapiz-01.png';" onmouseout="this.src= '../images/lapiz.png';" />
-                              </a>
-                            <a onclick="lightboxOut('mescontactlight', 'mescontactfade')" style="float: left; margin-top: 0px; margin-right: 10px;">
-                                 <img class="control-icon" src="../images/borrar-04.png" onmouseover="this.src= '../images/borrar-02.png';" onmouseout="this.src= '../images/borrar-04.png';" />
-                              </a>
-                              
-              					<input style="float:left" class="w-button button" type="submit" value="Guardar" data-wait="Please wait...">
+              					<input style="" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
+                                <a style="" class="w-button button course-button">Cancelar</a>
                             </div>
-                          </div>
+                            
                         </form>
+                          </div>';
+						  
                       </div>
                     </div>
                     <div data-w-tab="Tab 2" class="w-tab-pane">

@@ -428,6 +428,15 @@ p {
   font-size: 25px;
   line-height: 25px;
 }
+.course-row{
+	border-bottom: 1px #ccc solid;
+}
+.course-button{
+	cursor: pointer; float:left; padding: 5px 10px;
+}
+.course-action-icon{
+	float: left; margin-top: 0px; margin-right: 10px;
+}
 html.w-mod-js *[data-ix="fade-in-bottom-page-loads"] {
   opacity: 0;
   -webkit-transform: translate(0px, 50px);
