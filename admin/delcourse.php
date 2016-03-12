@@ -5,9 +5,9 @@ if(isset($_SESSION['activeuser'])){
 } else {
 	die("<script>location.href = 'iniciar-sesion'</script>");
 }
-if(isset($_POST['course']) && isset($_POST['cupo'])){
+if(isset($_POST['course'])){
 	$stmt = $pdo->prepare('DELETE FROM `labspace` WHERE `SpaceID`=:id');
-	$stmt->execute(array(':id' => $_POST['courseID']));
+	$stmt->execute(array(':id' => $_POST['course']));
 }
 die("<script>location.href = 'index?success=labdeleted'</script>");
 ?>
