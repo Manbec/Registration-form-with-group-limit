@@ -2,8 +2,8 @@
 //ini_set('display_errors', 1); 
 //error_reporting(E_ALL);
 require('conbd.php');
-$siteKey = "6LdZKggTAAAAAEMl-2fIzUuSUZ2p7nn7wLoBn6pl";
-$secret = "6LdZKggTAAAAAKM57eGAAOlZSjHZ18Wl6iUjXTGb";
+$siteKey = "6LfmpBoTAAAAABnHg55ks13VEpzyLFRaGPVoUC64";
+$secret = "6LfmpBoTAAAAAKShulbci8Xw28ExRUmExfPflo0q";
 
 if(isset($_POST['mat']) && isset($_POST['name']) && isset($_POST['lname']) && isset($_POST['spaceid'])){
 	

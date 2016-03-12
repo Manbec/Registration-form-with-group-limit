@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Servidor: localhost
--- Tiempo de generación: 27-02-2016 a las 11:43:36
+-- Tiempo de generación: 12-03-2016 a las 10:14:41
 -- Versión del servidor: 5.6.16
 -- Versión de PHP: 5.5.11
 
@@ -30,15 +30,35 @@ CREATE TABLE IF NOT EXISTS `labspace` (
 `SpaceID` int(11) NOT NULL,
   `Description` varchar(400) DEFAULT NULL,
   `availableSpaces` int(11) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 --
 -- Volcado de datos para la tabla `labspace`
 --
 
 INSERT INTO `labspace` (`SpaceID`, `Description`, `availableSpaces`) VALUES
-(1, 'Laboratorio 1', 20),
-(2, 'Laboratorio 2', 20);
+(1, 'Laboratorio 101', 5),
+(2, 'Laboratorio 2', 20),
+(3, 'Laboratorio nuevo', 10);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `professor`
+--
+
+CREATE TABLE IF NOT EXISTS `professor` (
+`ProfessorID` int(11) NOT NULL,
+  `name` varchar(20) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `professor`
+--
+
+INSERT INTO `professor` (`ProfessorID`, `name`) VALUES
+(1, 'Edgar R.'),
+(3, 'Julio D.');
 
 -- --------------------------------------------------------
 
@@ -59,6 +79,7 @@ CREATE TABLE IF NOT EXISTS `registration` (
 
 INSERT INTO `registration` (`Matricula`, `spaceID`, `Name`, `LastName`) VALUES
 ('A01222366', 1, 'Manuel', 'Becerra'),
+('A019101', 1, 'manolo', 'bm'),
 ('aoijsioa', 1, 'jshiuga', 'uysgyu');
 
 --
@@ -70,6 +91,12 @@ INSERT INTO `registration` (`Matricula`, `spaceID`, `Name`, `LastName`) VALUES
 --
 ALTER TABLE `labspace`
  ADD PRIMARY KEY (`SpaceID`);
+
+--
+-- Indices de la tabla `professor`
+--
+ALTER TABLE `professor`
+ ADD PRIMARY KEY (`ProfessorID`);
 
 --
 -- Indices de la tabla `registration`
@@ -85,7 +112,12 @@ ALTER TABLE `registration`
 -- AUTO_INCREMENT de la tabla `labspace`
 --
 ALTER TABLE `labspace`
-MODIFY `SpaceID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
+MODIFY `SpaceID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
+--
+-- AUTO_INCREMENT de la tabla `professor`
+--
+ALTER TABLE `professor`
+MODIFY `ProfessorID` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

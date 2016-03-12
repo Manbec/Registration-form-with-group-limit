@@ -25,6 +25,10 @@ $stmt = $pdo->prepare('Select * from professor');
 $stmt->execute();
 $professors = $stmt->fetchall();
 
+$stmt = $pdo->prepare('SELECT * FROM `registration` natural join labspace');
+$stmt->execute();
+$registrations = $stmt->fetchall();
+
 //print_r($labspaces);
 /*if(isset($_POST['email'])){
 	$stmt = $pdo->prepare('INSERT INTO `client`(`mail`, `name`) VALUES (:mail,:name)');
@@ -46,6 +50,8 @@ $professors = $stmt->fetchall();
   <link rel="stylesheet" type="text/css" href="../css/lightbox.css">
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js"></script>
   <script src="../js/lightbox.js"></script>
+  <script src="../js/modernizr.js"></script>
+  <script src="../js/jquery-1.3.2.min.js" ></script>
   <script>
     WebFont.load({
       google: {
@@ -53,7 +59,11 @@ $professors = $stmt->fetchall();
       }
     });
   </script>
-  <script type="text/javascript" src="../js/modernizr.js"></script>
+  <style>
+  th > span {
+	  color: black;
+  }
+  </style>
   <link rel="shortcut icon" type="image/x-icon" href="images/favicon_tslup.png">
   <link rel="apple-touch-icon" href="images/tslup256x256.png">
   <script src='https://www.google.com/recaptcha/api.js'></script>
@@ -108,6 +118,49 @@ $professors = $stmt->fetchall();
 		function hideNewLab(){
 			document.getElementById('newlab').setAttribute('style', 'display: none;');	
 		}
+		function exportTableToCSV($table, filename) {
+
+    var $rows = $table.find('tr:has(td),tr:has(th)'),
+
+        // Temporary delimiter characters unlikely to be typed by keyboard
+        // This is to avoid accidentally splitting the actual contents
+        tmpColDelim = String.fromCharCode(11), // vertical tab character
+        tmpRowDelim = String.fromCharCode(0), // null character
+
+        // actual delimiter characters for CSV format
+        colDelim = '","',
+        rowDelim = '"\r\n"',
+
+        // Grab text from table into CSV formatted string
+        csv = '"' + $rows.map(function (i, row) {
+            var $row = $(row), $cols = $row.find('td,th');
+
+            return $cols.map(function (j, col) {
+                var $col = $(col), text = $col.text();
+
+                return text.replace(/"/g, '""'); // escape double quotes
+
+            }).get().join(tmpColDelim);
+
+        }).get().join(tmpRowDelim)
+            .split(tmpRowDelim).join(rowDelim)
+            .split(tmpColDelim).join(colDelim) + '"',
+
+
+
+        // Data URI
+        csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+
+        console.log(csv);
+
+        if (window.navigator.msSaveBlob) { // IE 10+
+            //alert('IE' + csv);
+            window.navigator.msSaveOrOpenBlob(new Blob([csv], {type: "text/plain;charset=utf-8;"}), "csvname.csv")
+        } 
+        else {
+            $(this).attr({ 'download': filename, 'href': csvData, 'target': '_blank' }); 
+        }
+}
 	</script>
 </head>
 <body>
@@ -227,8 +280,11 @@ $professors = $stmt->fetchall();
                     <a data-w-tab="Tab 1" class="w-tab-link w-inline-block">
                       <div>Horarios</div>
                     </a>
-                    <a data-w-tab="Tab 2" class="w-tab-link w--current w-inline-block">
+                    <a data-w-tab="Tab 2" class="w-tab-link <?php if (strpos($_GET['success'], 'prof') !== false) {echo 'w--current';} ?> w-inline-block">
                       <div>Profesores</div>
+                    </a>
+                    <a data-w-tab="Tab 3" class="w-tab-link w-inline-block">
+                      <div>Registrados</div>
                     </a>
                   </div>
                   <div class="w-tab-content">
@@ -346,6 +402,66 @@ $professors = $stmt->fetchall();
 						  
                       </div>
                     </div>
+                    
+                    <div data-w-tab="Tab 3" class="w-tab-pane">
+                    <a style="margin: 30px;" class="w-button button" id="xx" onclick="exportTableToCSV.apply(this, [$('#example1'), 'export.csv']);">Exportar CSV</a>
+                     <div class="w-row course-row">
+                     
+                        <div class="w-col w-col-2">
+                        </div>
+                     <div class="w-col w-col-8">
+                    	<table id="example1" border="1"  style="background-color:#FFFFCC" width="0%" cellpadding="3" cellspacing="3">
+
+					<?php
+					$count = 0;
+					$currCourse = $registrations[$count]['Description'];
+					$stmt = $pdo->prepare('Select labspace.SpaceID, availableSpaces-ifnull(registrations,0) as remaining, Description from (SELECT ls.SpaceId, count(Matricula) as registrations FROM `registration` r join labspace ls where r.spaceID = ls.SpaceID group by r.spaceID) as T right join labspace on  T.SpaceID = labspace.SpaceID where labspace.SpaceID = '.$registrations[$count]['spaceID'].';');
+					$stmt->execute();
+					$currspaces = $stmt->fetchall();
+
+					echo '     <tr>
+						
+								<th>Laboratorio: <span>'.$currCourse.'</span></th>
+						
+								<th>Cupo: <span>'.(intval($registrations[$count]['availableSpaces'])-intval($currspaces[0]['remaining'])).'/'.$registrations[$count]['availableSpaces'].'</span></th>
+						
+							</tr>';
+					
+					while($count < sizeof($registrations)){
+						if($currCourse != $registrations[$count]['Description']){
+							$currCourse = $registrations[$count]['Description'];
+							$stmt = $pdo->prepare('Select labspace.SpaceID, availableSpaces-ifnull(registrations,0) as remaining, Description from (SELECT ls.SpaceId, count(Matricula) as registrations FROM `registration` r join labspace ls where r.spaceID = ls.SpaceID group by r.spaceID) as T right join labspace on  T.SpaceID = labspace.SpaceID where labspace.SpaceID = '.$registrations[$count]['spaceID'].';');
+							$stmt->execute();
+							$currspaces = $stmt->fetchall();
+		
+							echo '     <tr>
+						
+								<th>Laboratorio: <span>'.$currCourse.'</span></th>
+						
+								<th>Cupo: <span>'.(intval($registrations[$count]['availableSpaces'])-intval($currspaces[0]['remaining'])).'/'.$registrations[$count]['availableSpaces'].'</span></th>
+						
+							</tr>';
+						}
+						
+						echo '
+						
+							<tr>
+						
+								<td>'.$registrations[$count]['Matricula'].'</td>
+						
+								<td>'.$registrations[$count]['Name'].' '.$registrations[$count]['LastName'].'</td>
+						
+							</tr>
+						';
+						
+						$count++;
+					}
+					?>
+</table>
+						</div>
+                        <div class="w-col w-col-2">
+                        </div>
+                    </div>
                   </div>
                 </div>
             </div>
@@ -366,6 +482,18 @@ $professors = $stmt->fetchall();
       </div>
     </div>
   </div>
+  <script>
+  
+
+// This must be a hyperlink
+$("#xx").on('click', function (event) {
+
+    exportTableToCSV.apply(this, [$('#example1'), 'export.csv']);
+
+    // IF CSV, don't do event.preventDefault() or return false
+    // We actually need this to be a typical hyperlink
+});
+  </script>
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script type="text/javascript" src="../js/webflow.js"></script>
   <!--[if lte IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/placeholders/3.0.2/placeholders.min.js"></script><![endif]-->
