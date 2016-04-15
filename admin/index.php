@@ -88,7 +88,6 @@ $registrations = $stmt->fetchall();
 			document.getElementById(type+'Name').value = descriptor;
 		}
 		function enableEditCourse(type,id){
-			console.log(document.getElementById(type+'subject'+id));
 			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:block;');
 			document.getElementById(type+'icons'+id).setAttribute('style', 'display:none;');	
 			document.getElementById(type+'name'+id).removeAttribute('disabled');	
@@ -96,7 +95,6 @@ $registrations = $stmt->fetchall();
 			document.getElementById(type+'space'+id).removeAttribute('disabled');
 		}
 		function disableEditCourse(type,id){
-			console.log(document.getElementById(type+'subject'+id));
 			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:none;');
 			document.getElementById(type+'icons'+id).setAttribute('style', 'display:block;');	
 			document.getElementById(type+'name'+id).setAttribute('disabled','disabled');
@@ -107,6 +105,7 @@ $registrations = $stmt->fetchall();
 			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:block;');
 			document.getElementById(type+'icons'+id).setAttribute('style', 'display:none;');	
 			document.getElementById(type+'name'+id).removeAttribute('disabled');
+			document.getElementById(type+'alias'+id).removeAttribute('disabled');
 			document.getElementById(type+'space'+id).removeAttribute('disabled');
 		}
 		function disableEditSubject(type,id){
@@ -114,6 +113,7 @@ $registrations = $stmt->fetchall();
 			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:none;');
 			document.getElementById(type+'icons'+id).setAttribute('style', 'display:block;');	
 			document.getElementById(type+'name'+id).setAttribute('disabled','disabled');
+			document.getElementById(type+'alias'+id).setAttribute('disabled','disabled');
 			document.getElementById(type+'space'+id).setAttribute('disabled','disabled');
 		}
 		function enableEditProf(type,id){
@@ -345,6 +345,10 @@ $registrations = $stmt->fetchall();
                               <input class="w-input form-field list" id="subjectname'.$subjects[$i]['id'].'" type="text" placeholder="Nombre del curso" value="'.$subjects[$i]['Name'].'" name="name" disabled>
 							  <input class="w-input form-field list" style="display: none;" type="text" placeholder="Nombre del curso" value="'.$subjects[$i]['id'].'" name="subjectID">
                             </div>
+            				<div class="w-col w-col-1"><p>Alias:</p></div>
+                            <div class="w-col w-col-2">
+                            	<input class="w-input form-field list" id="subjectalias'.$subjects[$i]['id'].'" type="text" placeholder="Alias para el link" value="'.$subjects[$i]['Alias'].'" name="subjectalias" disabled>
+                            </div>
                             <div class="w-col w-col-4">
 							<div id="subjecticons'.$subjects[$i]['id'].'" style="display: block;">
                               <a onclick="enableEditSubject(\'subject\','.$subjects[$i]['id'].')" class="course-action-icon">
@@ -377,13 +381,13 @@ $registrations = $stmt->fetchall();
                             <div class="w-col w-col-4">
                               <input class="w-input form-field list" id="password" type="text" placeholder="Nombre de la materia" name="subjectname">
                             </div>
+            				<div class="w-col w-col-1"><p>Alias:</p></div>
+                            <div class="w-col w-col-2">
+                            	<input class="w-input form-field list" id="password" type="text" placeholder="Alias para el link" name="subjectalias">
+                            </div>
                             <div class="w-col w-col-4">
               					<input style="" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
                                 <a style="" class="w-button button course-button">Cancelar</a>
-                            </div>
-                            
-            				<div class="w-col w-col-1"></div>
-                            <div class="w-col w-col-2">
                             </div>
                             
                         </form>
@@ -406,14 +410,18 @@ $registrations = $stmt->fetchall();
                             </div>
 							<div class="w-col w-col-1"><p>Cupo:</p></div>
                             <div class="w-col w-col-3">
-                              <input class="w-input form-field list" id="coursename'.$labspaces[$i]['SpaceID'].'" type="text" placeholder="Nombre del horario" value="'.$labspaces[$i]['availableSpaces'].'" name="course" disabled>
+                              <input class="w-input form-field list" id="coursespace'.$labspaces[$i]['SpaceID'].'" type="text" placeholder="Nombre del horario" value="'.$labspaces[$i]['availableSpaces'].'" name="cupo" disabled>
                             </div>
 							
 							  <div class="w-col w-col-1"><p>Materia:</p></div>
 								<div class="w-col w-col-3">
 									<select id="coursesubject'.$labspaces[$i]['SpaceID'].'" class="w-input form-field list" name="subjectid" disabled>';
 										for($j = 0; $j < sizeof($subjects); $j++){
-											echo '<option value="'.$subjects[$j]['id'].'">'.$subjects[$j]['Name'].'</option>';
+											echo '<option value="'.$subjects[$j]['id'].'"';
+											if($subjects[$j]['id'] == $labspaces[$i]['CourseID']){
+												echo ' selected';
+											}
+											echo '>'.$subjects[$j]['Name'].'</option>';
 										}
 									echo '</select>
 								</div>
@@ -531,7 +539,7 @@ $registrations = $stmt->fetchall();
                     </div>
                     
                     <div data-w-tab="Tab 3" class="w-tab-pane">
-                    <a style="margin: 30px;" class="w-button button" id="xx" onclick="exportTableToCSV.apply(this, [$('#example1'), 'export.csv']);">Exportar CSV</a>
+                    <a style="margin: 30px;" class="w-button button" id="xx" onclick="<?php if(sizeof($registrations)>0){echo "exportTableToCSV.apply(this, [$('#example1'), 'export.csv']);"; }?>">Exportar CSV</a>
                      <div class="w-row course-row">
                      
                         <div class="w-col w-col-2">
@@ -540,6 +548,7 @@ $registrations = $stmt->fetchall();
                     	<table id="example1" border="1"  style="background-color:#FFFFCC" width="0%" cellpadding="3" cellspacing="3">
 
 					<?php
+					if(sizeof($registrations)>0){
 					$count = 0;
 					$currCourse = $registrations[$count]['Description'];
 					$stmt = $pdo->prepare('Select labspace.SpaceID, availableSpaces-ifnull(registrations,0) as remaining, Description from (SELECT ls.SpaceId, count(Matricula) as registrations FROM `registration` r join labspace ls where r.spaceID = ls.SpaceID group by r.spaceID) as T right join labspace on  T.SpaceID = labspace.SpaceID where labspace.SpaceID = '.$registrations[$count]['spaceID'].';');
@@ -582,6 +591,10 @@ $registrations = $stmt->fetchall();
 						';
 						
 						$count++;
+					}
+					}
+					else{
+						echo 'no hay registros';
 					}
 					?>
 </table>

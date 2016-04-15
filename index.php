@@ -24,8 +24,8 @@ if(isset($_POST['mat']) && isset($_POST['name']) && isset($_POST['lname']) && is
 		);
 	}
 	if ($resp != null && $resp->success) {
-		$stmt = $pdo->prepare('INSERT INTO registration VALUES (:mat,:spaceid,:name,:lname)');
-		$stmt->execute(array(':mat' => $_POST['mat'], ':spaceid' => $_POST['spaceid'], ':name' => $_POST['name'], ':lname' => $_POST['lname']));
+		$stmt = $pdo->prepare('INSERT INTO registration VALUES (:mat,:spaceid,:name,:lname,:prof)');
+		$stmt->execute(array(':mat' => $_POST['mat'], ':spaceid' => $_POST['spaceid'], ':name' => $_POST['name'], ':lname' => $_POST['lname'], ':prof' => $_POST['professor']));
 	}
 }
 
@@ -36,6 +36,20 @@ $labspaces = $stmt->fetchall();
 $stmt = $pdo->prepare('Select * from professor');
 $stmt->execute();
 $professors = $stmt->fetchall();
+
+$specificSubject =false;
+if(isset($_GET['m'])){
+	$stmt = $pdo->prepare('Select * from subject where Alias = :alias');
+	$stmt->execute(array(':alias'=>$_GET['m']));
+	$subject = $stmt->fetchall();
+	echo $subject[0]['id'];
+	$stmt = $pdo->prepare('Select A.SpaceID, availableSpaces-ifnull(registrations,0) as remaining, Description from (SELECT ls.SpaceId, count(Matricula) as registrations FROM `registration` r join labspace ls where r.spaceID = ls.SpaceID group by r.spaceID) as T right join (select * from labspace join (Select * from subject where id = '.$subject[0]['id'].') as T Where T.id = labspace.CourseID) as A on  T.SpaceID = A.SpaceID;');
+	$stmt->execute();
+	$labspaces = $stmt->fetchall();
+}
+else{
+}
+
 
 //print_r($labspaces);
 /*if(isset($_POST['email'])){
@@ -126,9 +140,9 @@ $professors = $stmt->fetchall();
   <div class="w-section section lesspaceup" id="about">
     <div class="w-container section" id="contact">
       <h1 class="title">Registro de laboratorios</h1>
-      <h2 class="title">Cupo máximo por grupo 24 personas</h2>
+      <h2 class="title"><?php echo $subject[0]['Name'];?></h2>
       <div class="w-form">
-        <form id="email-form" method="post" action="?">
+        <form id="email-form" method="post" action="?m=<?php echo $_GET['m'];?>">
           <div class="w-row">
             <div class="w-col w-col-2"></div>
             <div class="w-col w-col-6">
