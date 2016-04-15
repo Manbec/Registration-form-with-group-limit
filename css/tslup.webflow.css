@@ -479,6 +479,13 @@ html.w-mod-js *[data-ix="scale-on-scroll"] {
   -ms-transform: scale(0.01);
   transform: scale(0.01);
 }
+
+  .rightcontrols{
+	  margin-top: -20px;
+	  float: right;
+	  padding: 10px;
+	  padding-right: 60px;
+  }
 @media (max-width: 991px) {
   .navigation-link {
     color: rgba(255, 255, 255, 0.52);

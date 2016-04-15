@@ -17,6 +17,10 @@ if(isset($_POST['mat']) && isset($_POST['name']) && isset($_POST['lname']) && is
 	}
 }
 
+$stmt = $pdo->prepare('Select * from subject;');
+$stmt->execute();
+$subjects = $stmt->fetchall();
+
 $stmt = $pdo->prepare('Select * from labspace;');
 $stmt->execute();
 $labspaces = $stmt->fetchall();
@@ -28,6 +32,7 @@ $professors = $stmt->fetchall();
 $stmt = $pdo->prepare('SELECT * FROM `registration` natural join labspace');
 $stmt->execute();
 $registrations = $stmt->fetchall();
+
 
 //print_r($labspaces);
 /*if(isset($_POST['email'])){
@@ -83,12 +88,28 @@ $registrations = $stmt->fetchall();
 			document.getElementById(type+'Name').value = descriptor;
 		}
 		function enableEditCourse(type,id){
+			console.log(document.getElementById(type+'subject'+id));
+			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:block;');
+			document.getElementById(type+'icons'+id).setAttribute('style', 'display:none;');	
+			document.getElementById(type+'name'+id).removeAttribute('disabled');	
+			document.getElementById(type+'subject'+id).removeAttribute('disabled');
+			document.getElementById(type+'space'+id).removeAttribute('disabled');
+		}
+		function disableEditCourse(type,id){
+			console.log(document.getElementById(type+'subject'+id));
+			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:none;');
+			document.getElementById(type+'icons'+id).setAttribute('style', 'display:block;');	
+			document.getElementById(type+'name'+id).setAttribute('disabled','disabled');
+			document.getElementById(type+'subject'+id).setAttribute('disabled','disabled');
+			document.getElementById(type+'space'+id).setAttribute('disabled','disabled');
+		}
+		function enableEditSubject(type,id){
 			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:block;');
 			document.getElementById(type+'icons'+id).setAttribute('style', 'display:none;');	
 			document.getElementById(type+'name'+id).removeAttribute('disabled');
 			document.getElementById(type+'space'+id).removeAttribute('disabled');
 		}
-		function disableEditCourse(type,id){
+		function disableEditSubject(type,id){
 			
 			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:none;');
 			document.getElementById(type+'icons'+id).setAttribute('style', 'display:block;');	
@@ -105,6 +126,9 @@ $registrations = $stmt->fetchall();
 			document.getElementById(type+'buttons'+id).setAttribute('style', 'display:none;');
 			document.getElementById(type+'icons'+id).setAttribute('style', 'display:block;');	
 			document.getElementById(type+'name'+id).setAttribute('disabled','disabled');
+		}
+		function showNewSubject(){
+			document.getElementById('newsubject').setAttribute('style', '');	
 		}
 		function showNewLab(){
 			document.getElementById('newlab').setAttribute('style', '');	
@@ -215,6 +239,25 @@ $registrations = $stmt->fetchall();
 	}
 	?>
     
+    <div id="delsubjectlight" class="white_content">
+                                  <div class="w-row" style="text-align: center;">
+                                  <div class="w-col w-col-3"></div>
+                                  <div class="w-col w-col-6">
+                                  <form id="email-form" method="post" action="delsubject">
+                              			<input class="w-input form-field list" style="display: block;" id="subjectId" type="text" placeholder="ID del profesor" name="subjectid">
+                                  	
+                                  		<p><strong>¿Seguro que desea borrar el curso <strong><span id="subjectName">	</span></strong>?</strong> <br>Se perderán todos los registros del mismo</p>
+                                  		<input style="height: auto; width: 100%; padding: 10px; float: none; margin-top: 20px;   display: block; cursor:pointer;   background-color: red; color: white;" type="submit" value="Borrar">
+                                        
+                                  </form>
+                                        <a style="position: relative; height: auto; padding: 10px;  float: none;  margin-left: 0px; margin-top: 20px;   display: block; cursor:pointer;   background-color: #265aa6; color: white;" onclick="lightboxOut('delsubjectlight','delsubjectfade')">Cancelar</a>
+                                  </div>
+                                  <div class="w-col w-col-3"></div>
+                                  </div> 
+                                      
+     </div>
+        <div id="delsubjectfade" class="black_overlay" onclick="lightboxOut('delsubjectlight','delsubjectfade')"></div>
+        
      <div id="delcourselight" class="white_content">
                                   <div class="w-row" style="text-align: center;">
                                   <div class="w-col w-col-3"></div>
@@ -254,7 +297,6 @@ $registrations = $stmt->fetchall();
      </div>
         <div id="delproffade" class="black_overlay" onclick="lightboxOut('delproflight','delproffade')"></div>
 
-  <script>lightboxIn('registerlight','registerfade');</script>
   <div class="w-section navigation-bar" id="start">
     <div class="w-nav navigation-bar static" data-collapse="medium" data-animation="default" data-duration="400" data-contain="1">
       <div class="w-container">
@@ -277,6 +319,9 @@ $registrations = $stmt->fetchall();
             <div class="w-col w-col-12">
                 <div data-duration-in="300" data-duration-out="100" class="w-tabs">
                   <div class="w-tab-menu">
+                  	<a data-w-tab="Materias" class="w-tab-link w-inline-block">
+                      <div>Materias</div>
+                    </a>
                     <a data-w-tab="Tab 1" class="w-tab-link w-inline-block">
                       <div>Horarios</div>
                     </a>
@@ -288,6 +333,64 @@ $registrations = $stmt->fetchall();
                     </a>
                   </div>
                   <div class="w-tab-content">
+                    <div data-w-tab="Materias" class="w-tab-pane">
+                    	<?php
+						for($i = 0; $i < sizeof($subjects); $i++){
+							echo '
+							<div class="w-row course-row">
+                          
+                    	<form id="email-form" style="padding: 10px;" method="post" action="updatesubject">
+            				<div class="w-col w-col-1"><p>Curso:</p></div>
+                            <div class="w-col w-col-4">
+                              <input class="w-input form-field list" id="subjectname'.$subjects[$i]['id'].'" type="text" placeholder="Nombre del curso" value="'.$subjects[$i]['Name'].'" name="name" disabled>
+							  <input class="w-input form-field list" style="display: none;" type="text" placeholder="Nombre del curso" value="'.$subjects[$i]['id'].'" name="subjectID">
+                            </div>
+                            <div class="w-col w-col-4">
+							<div id="subjecticons'.$subjects[$i]['id'].'" style="display: block;">
+                              <a onclick="enableEditSubject(\'subject\','.$subjects[$i]['id'].')" class="course-action-icon">
+                                 <img class="control-icon" src="../images/lapiz.png" onmouseover="this.src= \'../images/lapiz-01.png\';" onmouseout="this.src=\'../images/lapiz.png\';" />
+                              </a>
+                            <a onclick="lightboxIn(\'delsubjectlight\', \'delsubjectfade\');prepareDel(\'subject\','.$subjects[$i]['id'].');" class="course-action-icon">
+                                 <img class="control-icon" src="../images/borrar-04.png" onmouseover="this.src= \'../images/borrar-02.png\';" onmouseout="this.src= \'../images/borrar-04.png\';" />
+                              </a>
+							  </div>
+                              <div id="subjectbuttons'.$subjects[$i]['id'].'" style="display: none;">
+              					<input style="" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
+                                <a style="" class="w-button button course-button" onclick="disableEditSubject(\'subject\','.$subjects[$i]['id'].')">Cancelar</a>
+							  </div>
+                            </div>
+                            
+                        </form>
+                          </div>';
+						}
+						?>
+                      	<div class="w-row course-row">
+                            <a onclick="showNewSubject();" class="course-action-icon" style="margin-bottom: 10px;">
+                                 <img class="control-icon" src="../images/borrar-03.png" onmouseover="this.src= '../images/borrar-01.png';" onmouseout="this.src= '../images/borrar-03.png';" />
+                              </a>
+                          </div>
+                      <div id="newsubject" style="display: none;">
+                          <div class="w-row course-row">
+                          
+                    	<form id="email-form" style="padding: 10px;" method="post" action="newsubject">
+            				<div class="w-col w-col-1"><p>Materia:</p></div>
+                            <div class="w-col w-col-4">
+                              <input class="w-input form-field list" id="password" type="text" placeholder="Nombre de la materia" name="subjectname">
+                            </div>
+                            <div class="w-col w-col-4">
+              					<input style="" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
+                                <a style="" class="w-button button course-button">Cancelar</a>
+                            </div>
+                            
+            				<div class="w-col w-col-1"></div>
+                            <div class="w-col w-col-2">
+                            </div>
+                            
+                        </form>
+                          </div>';
+						  
+                      </div>
+                    </div>
                     <div data-w-tab="Tab 1" class="w-tab-pane w--tab-active">
                     	<?php
 						
@@ -297,12 +400,26 @@ $registrations = $stmt->fetchall();
                           
                     	<form id="email-form" style="padding: 10px;" method="post" action="updatecourse">
             				<div class="w-col w-col-1"><p>Curso:</p></div>
-                            <div class="w-col w-col-4">
-                              <input class="w-input form-field list" id="coursename'.$labspaces[$i]['SpaceID'].'" type="text" placeholder="Nombre del curso" value="'.$labspaces[$i]['Description'].'" name="course" disabled>
-							  <input class="w-input form-field list" style="display: none;" type="text" placeholder="Nombre del curso" value="'.$labspaces[$i]['SpaceID'].'" name="courseID">
+                            <div class="w-col w-col-3">
+                              <input class="w-input form-field list" id="coursename'.$labspaces[$i]['SpaceID'].'" type="text" placeholder="Nombre del horario" value="'.$labspaces[$i]['Description'].'" name="course" disabled>
+							  <input class="w-input form-field list" style="display: none;" type="text" placeholder="Nombre del " value="'.$labspaces[$i]['SpaceID'].'" name="courseID">
                             </div>
-                            <div class="w-col w-col-4">
-							<div id="courseicons'.$labspaces[$i]['SpaceID'].'" style="display: block;">
+							<div class="w-col w-col-1"><p>Cupo:</p></div>
+                            <div class="w-col w-col-3">
+                              <input class="w-input form-field list" id="coursename'.$labspaces[$i]['SpaceID'].'" type="text" placeholder="Nombre del horario" value="'.$labspaces[$i]['availableSpaces'].'" name="course" disabled>
+                            </div>
+							
+							  <div class="w-col w-col-1"><p>Materia:</p></div>
+								<div class="w-col w-col-3">
+									<select id="coursesubject'.$labspaces[$i]['SpaceID'].'" class="w-input form-field list" name="subjectid" disabled>';
+										for($j = 0; $j < sizeof($subjects); $j++){
+											echo '<option value="'.$subjects[$j]['id'].'">'.$subjects[$j]['Name'].'</option>';
+										}
+									echo '</select>
+								</div>
+								
+                            <div class="w-col w-col-12">
+							<div class="rightcontrols" id="courseicons'.$labspaces[$i]['SpaceID'].'" style="display: block;">
                               <a onclick="enableEditCourse(\'course\','.$labspaces[$i]['SpaceID'].')" class="course-action-icon">
                                  <img class="control-icon" src="../images/lapiz.png" onmouseover="this.src= \'../images/lapiz-01.png\';" onmouseout="this.src=\'../images/lapiz.png\';" />
                               </a>
@@ -310,7 +427,7 @@ $registrations = $stmt->fetchall();
                                  <img class="control-icon" src="../images/borrar-04.png" onmouseover="this.src= \'../images/borrar-02.png\';" onmouseout="this.src= \'../images/borrar-04.png\';" />
                               </a>
 							  </div>
-                              <div id="coursebuttons'.$labspaces[$i]['SpaceID'].'" style="display: none;">
+                              <div class="rightcontrols" id="coursebuttons'.$labspaces[$i]['SpaceID'].'" style="display: none;">
               					<input style="" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
                                 <a style="" class="w-button button course-button" onclick="disableEditCourse(\'course\','.$labspaces[$i]['SpaceID'].')">Cancelar</a>
 							  </div>
@@ -331,15 +448,25 @@ $registrations = $stmt->fetchall();
                     	<form id="email-form" style="padding: 10px;" method="post" action="newcourse">
             				<div class="w-col w-col-1"><p>Curso:</p></div>
                             <div class="w-col w-col-4">
-                              <input class="w-input form-field list" id="password" type="text" placeholder="Nombre del curso" name="course">
+                              <input class="w-input form-field list" id="password" type="text" placeholder="Nombre del horario de laboratorio" name="course">
                             </div>
             				<div class="w-col w-col-1"><p>Cupo:</p></div>
                             <div class="w-col w-col-2">
                               <input class="w-input form-field list" id="course" type="number" min="0" step="1" placeholder="Cupo" name="cupo">
                             </div>
-                            <div class="w-col w-col-4">
-              					<input style="" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
-                                <a style="" class="w-button button course-button">Cancelar</a>
+                            <div class="w-col w-col-1"><p>Materia:</p></div>
+                            <div class="w-col w-col-2">
+                              	<select class="w-input form-field list" name="subjectid">
+                                <?php
+									for($i = 0; $i < sizeof($subjects); $i++){
+										echo '<option value="'.$subjects[$i]['id'].'">'.$subjects[$i]['Name'].'</option>';
+									}
+								?>
+                                </select>
+                            </div>
+                            <div class="w-col w-col-12">
+              					<input style="float: right; margin: 20px; margin-right: 75px;" class="w-button button course-button" type="submit" value="Guardar" data-wait="Please wait...">
+                                <a style="float: right;margin: 20px;" class="w-button button course-button">Cancelar</a>
                             </div>
                             
                         </form>
